@@ -1,0 +1,15 @@
+{
+  "name": "inkress-sdk",
+  "version": "0.0.1",
+  "description": "initial version of the inkress-sdk",
+  "main": "index.js",
+  "types": "types.d.ts",
+  "repository": "https://github.com/SirFitz/inkress-sdk",
+  "author": "Sirfitz",
+  "license": "ISC",
+  "private": false,
+  "devDependencies": {
+    "tsc": "^2.0.4",
+    "typescript": "^5.1.6"
+  }
+}
