@@ -1,4 +1,4 @@
-import Inkress from "./index";
+import Inkress from "../index";
 
 // Define the structure for the customer
 export interface Customer {
