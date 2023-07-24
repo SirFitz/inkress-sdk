@@ -7,20 +7,20 @@ A simple TypeScript library to interact with the Inkress API.
 ### Using npm:
 
 ```bash
-npm install --save inkress-api
+npm install --save inkress-sdk
 ```
 
 ### Using yarn:
 
 ```bash
-yarn add inkress-api
+yarn add inkress-sdk
 ```
 
 Usage
 Here's a simple example:
 ```typescript
 
-import InkressAPI, { Order } from 'inkress-api';
+import InkressAPI, { Order } from 'inkress-sdk';
 
 const api = new InkressAPI('your_token_here'); // Replace 'your_token_here' with your actual token
 
