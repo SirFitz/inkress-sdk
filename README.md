@@ -55,6 +55,12 @@ Sets the client key to be used in API requests.
 #### createOrder(order: Order): Promise<ApiResponse | null>
 Creates an order with the given details. Returns a Promise that resolves to an ApiResponse object if successful, or null if an error occurs.
 
+#### verifyJWT(token: string, secret: string): WebhookPayload | null
+Verifies a JWT from the Webhook using your secret.
+```js
+const jwt = 'jwt_received_from_webhook';
+const decoded = api.decodeAndVerifyJWT(jwt, 'your_secret_key_here');
+```
 
 ### Types
 
