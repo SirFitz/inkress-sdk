@@ -52,5 +52,15 @@ export interface ApiResponse {
   result: Result;
 }
 
+// Define the structure for the JWT payload
+export interface WebhookPayload {
+  provider: string;
+  reference: string;
+  currency: string;
+  amount: number;
+  client: Customer;
+}
+
+
 export default Inkress;
   

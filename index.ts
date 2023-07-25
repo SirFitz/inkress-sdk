@@ -1,9 +1,13 @@
-import { Order, ApiResponse } from './types';
+import { Order, WebhookPayload, ApiResponse } from './types';
+import jwt from 'jsonwebtoken';
+
 interface InkressInterface {
   setToken: (token: string) => void;
   setClient: (clientKey: string) => void;
   createOrder: (order: Order) => Promise<ApiResponse | null>;
+  verifyJWT: (token: string, secret: string) => WebhookPayload | null;
 }
+
 class Inkress implements InkressInterface {
   private clientKey: string;
   private baseUrl: string;
@@ -21,6 +25,16 @@ class Inkress implements InkressInterface {
 
   setToken(token: string) {
     this.token = token;
+  };
+
+  verifyJWT(token: string, secret: string): WebhookPayload | null {
+    try {
+      const decoded = jwt.verify(token, secret);
+      return decoded as WebhookPayload;
+    } catch (error) {
+      console.error('Error while decoding and verifying JWT:', error);
+      return null;
+    }
   };
 
   async createOrder(order: Order): Promise<ApiResponse | null> {
