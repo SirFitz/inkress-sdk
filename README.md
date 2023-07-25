@@ -95,6 +95,18 @@ interface ApiResponse {
 }
 ```
 
+#### WebhookPayload
+Represents the encoded JWT data from the Webhook
+```typescript
+interface WebhookPayload {
+  provider: string;
+  reference: string;
+  currency: string;
+  amount: number;
+  client: Customer;
+}
+```
+
 ### Contributing
 Contributions are welcome. Please open an issue or submit a pull request.
 
