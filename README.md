@@ -1,3 +1,7 @@
+
+[![npm](https://img.shields.io/npm/v/inkress-sdk.svg?maxAge=2592000)](https://www.npmjs.com/package/npm-auto-version)
+[![downloads](https://img.shields.io/npm/dt/inkress-sdk.svg?maxAge=2592000)](https://www.npmjs.com/package/npm-auto-version)
+
 # InkressAPI Wrapper
 
 A simple TypeScript library to interact with the Inkress API.
