@@ -22,9 +22,15 @@ yarn add inkress-sdk
 
 Usage
 Here's a simple example:
-```typescript
 
-import InkressAPI, { Order } from 'inkress-sdk';
+```js
+//Using require
+const InkressAPI = require('inkress-sdk').default;
+```
+
+```typescript
+// Using import
+import InkressAPI, { Order } from 'inkress-sdk'; 
 
 const api = new InkressAPI('your_token_here'); // Replace 'your_token_here' with your actual token
 
