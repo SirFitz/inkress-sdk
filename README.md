@@ -63,7 +63,7 @@ Creates an order with the given details. Returns a Promise that resolves to an A
 Verifies a JWT from the Webhook using your secret.
 ```js
 const jwt = 'jwt_received_from_webhook';
-const decoded = api.decodeAndVerifyJWT(jwt, 'your_secret_key_here');
+const decoded = api.verifyJWT(jwt, 'your_secret_key_here');
 ```
 
 ### Types
@@ -108,6 +108,7 @@ interface WebhookPayload {
   currency: string;
   amount: number;
   client: Customer;
+  status: 'pending | error | paid | partial | confirmed | cancelled | prepared | shipped | delivered | completed | returned | refunded';
 }
 ```
 
