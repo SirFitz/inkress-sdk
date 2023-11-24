@@ -31,9 +31,9 @@ class Inkress {
                 headers,
                 body: JSON.stringify(order)
             });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            // if (!response.ok) {
+            //     throw new Error(`HTTP error! status: ${response.status}`);
+            // }
             const jsonData = await response.json();
             return jsonData;
         }

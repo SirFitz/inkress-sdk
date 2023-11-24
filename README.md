@@ -81,12 +81,7 @@ interface Order {
     total: number
     title: string
     kind: string
-    customer: {
-        email: string
-        first_name: string
-        last_name: string
-        phone: string
-    }
+    customer: Customer;
     reference_id: string
     currency_code: string
 }
@@ -115,6 +110,15 @@ interface WebhookPayload {
   amount: number;
   client: Customer;
   status: 'pending | error | paid | partial | confirmed | cancelled | prepared | shipped | delivered | completed | returned | refunded';
+}
+```
+
+#### Customer
+Represents the customer encoded in the Webhook
+```typescript
+export interface Customer {
+  name: string;
+  email: string;
 }
 ```
 

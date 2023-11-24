@@ -52,9 +52,9 @@ class Inkress implements InkressInterface {
         body: JSON.stringify(order)
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
       const jsonData: ApiResponse = await response.json();
       return jsonData;

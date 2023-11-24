@@ -2,12 +2,8 @@ import Inkress from "../index";
 
 // Define the structure for the customer
 export interface Customer {
-  status?: number;
-  uid?: string;
   email: string;
-  phone: string;
-  first_name: string;
-  last_name: string;
+  name: string;
 }
 
 // Define the structure for the order
@@ -54,11 +50,14 @@ export interface ApiResponse {
 
 // Define the structure for the JWT payload
 export interface WebhookPayload {
+  facilitator: "Inkress";
   provider: string;
+  provider_id: string;
   reference: string;
   currency: string;
   amount: number;
   client: Customer;
+  status: 'pending | error | paid | partial | confirmed | cancelled | prepared | shipped | delivered | completed | returned | refunded';
 }
 
 
