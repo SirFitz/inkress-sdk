@@ -1,6 +1,6 @@
 {
   "name": "inkress-sdk",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "initial version of the inkress-sdk",
   "main": "dist/index.js",
   "types": "types/index.d.ts",
@@ -8,6 +8,11 @@
   "author": "Sirfitz",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --ext .ts"
+  },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.2",
     "tsc": "^2.0.4",

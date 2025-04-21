@@ -2,18 +2,20 @@ import Inkress from "../index";
 
 // Define the structure for the customer
 export interface Customer {
-  email: string;
-  name: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone: string;
 }
 
 // Define the structure for the order
-export interface Order {
-  total: number;
-  title: string;
-  kind: string;
+export interface OrderPlacementRequest {
+  total: number
+  title: string
+  kind: string
   customer: Customer;
-  reference_id: string;
-  currency_code: string;
+  reference_id: string
+  currency_code: string
 }
 
 // Define the structure for the order details
@@ -42,8 +44,36 @@ export interface Result {
   payment_urls: PaymentURLs;
 }
 
+
+export interface OrderPlacementResponse {
+  state: string;
+  result: {
+    id: number;
+    status: number;
+    total: number;
+    currency: string;
+    reference_id: string;
+    created_at: string;
+    customer: {
+      email: string;
+      first_name: string;
+      last_name: string;
+    };
+    provider: {
+      name: string;
+    };
+    title: string;
+    urls: {
+      short: string;
+      qr: string;
+      invoice: string;
+      return: string | null;
+    };
+  };
+}
+
 // Define the structure for the main API response
-export interface ApiResponse {
+export interface ApiResponse<T> {
   state: "ok" | "error";
   result: Result;
 }
@@ -60,6 +90,21 @@ export interface WebhookPayload {
   status: 'pending | error | paid | partial | confirmed | cancelled | prepared | shipped | delivered | completed | returned | refunded';
 }
 
+/**
+ * Options for creating a payment URL
+ */
+export interface PaymentURLOptions {
+  username: string;
+  total: number;
+  payment_link_id?: string;
+  /**
+   * Currency code (default: 'JMD')
+   */
+  currency_code?: string;
+  title?: string;
+  reference_id?: string;
+  customer?: Customer;
+}
+
 
 export default Inkress;
-  
