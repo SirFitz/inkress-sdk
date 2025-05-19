@@ -106,5 +106,84 @@ export interface PaymentURLOptions {
   customer?: Customer;
 }
 
+/**
+ * Options for JWT verification
+ */
+export interface JWTVerifyOptions {
+  /**
+   * Allowed algorithms for verification
+   * @default ['HS256', 'HS512']
+   */
+  algorithms?: string[];
+}
+
+/**
+ * JWT header structure
+ */
+export interface JWTHeader {
+  alg: string;
+  typ?: string;
+  [key: string]: any;
+}
+
+/**
+ * JWT payload structure
+ */
+export interface JWTPayload {
+  /**
+   * Expiration time (as Unix timestamp)
+   */
+  exp?: number;
+  /**
+   * Not before time (as Unix timestamp)
+   */
+  nbf?: number;
+  /**
+   * Issued at time (as Unix timestamp)
+   */
+  iat?: number;
+  /**
+   * JWT ID
+   */
+  jti?: string;
+  /**
+   * Subject
+   */
+  sub?: string;
+  /**
+   * Issuer
+   */
+  iss?: string;
+  /**
+   * Audience
+   */
+  aud?: string | string[];
+  /**
+   * Additional custom claims
+   */
+  [key: string]: any;
+}
+
+/**
+ * Decoded JWT structure
+ */
+export interface DecodedJWT {
+  header: JWTHeader;
+  payload: JWTPayload;
+}
+
+/**
+ * JWT crypto utilities
+ */
+export interface JWTCrypto {
+  isNode: boolean;
+  hmacSign(algorithm: string, key: string, data: string): Promise<Buffer | ArrayBuffer>;
+  timingSafeEqual(a: Uint8Array | Buffer, b: Uint8Array | Buffer): boolean;
+  textToBuffer(text: string): Uint8Array | Buffer;
+  bufferToText(buffer: Uint8Array | Buffer): string;
+  base64UrlToBuffer(base64url: string): Uint8Array | Buffer;
+  base64UrlDecode(base64url: string): string;
+  bufferToBase64Url(buffer: Uint8Array | Buffer): string;
+}
 
 export default Inkress;

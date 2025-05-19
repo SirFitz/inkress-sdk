@@ -1,6 +1,5 @@
 import { OrderPlacementRequest, WebhookPayload, ApiResponse, PaymentURLOptions, Customer, OrderPlacementResponse } from './types';
-import jwt from 'jsonwebtoken';
-
+import { jwtVerify } from './utils/jwt';
 interface InkressInterface {
   setToken: (token: string) => void;
   setClient: (clientKey: string) => void;
@@ -60,7 +59,7 @@ class Inkress implements InkressInterface {
    */
   verifyJWT(token: string, secret: string): WebhookPayload | null {
     try {
-      const decoded = jwt.verify(token, secret);
+      const decoded = jwtVerify(token, secret);
       return decoded as WebhookPayload;
     } catch (error) {
       console.error('Error while decoding and verifying JWT:', error);

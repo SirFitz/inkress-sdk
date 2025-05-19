@@ -8,11 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const jwt_1 = require("./utils/jwt");
 /**
  * Inkress payment processing library
  * Provides functions for creating orders, generating payment URLs, and handling webhooks
@@ -51,7 +48,7 @@ class Inkress {
      */
     verifyJWT(token, secret) {
         try {
-            const decoded = jsonwebtoken_1.default.verify(token, secret);
+            const decoded = (0, jwt_1.jwtVerify)(token, secret);
             return decoded;
         }
         catch (error) {
