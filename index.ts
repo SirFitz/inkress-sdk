@@ -1,10 +1,11 @@
-import { OrderPlacementRequest, WebhookPayload, ApiResponse, PaymentURLOptions, Customer, OrderPlacementResponse } from './types';
+import { OrderPlacementRequest, WebhookPayload, ApiResponse, PaymentURLOptions, Customer, OrderPlacementResponse, JWTVerifyOptions } from './types';
 import { jwtVerify } from './utils/jwt';
+
 interface InkressInterface {
   setToken: (token: string) => void;
   setClient: (clientKey: string) => void;
   createOrder: (order: OrderPlacementRequest) => Promise<OrderPlacementResponse | null>;
-  verifyJWT: (token: string, secret: string) => WebhookPayload | null;
+  verifyJWT: (token: string, secret: string, options?: JWTVerifyOptions) => Promise<WebhookPayload | null>;
   createPaymentUrl: (options: PaymentURLOptions) => string;
   decodeB64JSON: (encoded: string) => any;
   generateRandomId: () => string;
@@ -26,11 +27,15 @@ class Inkress implements InkressInterface {
    * @param mode - Your environment mode (live or test)
    */
   constructor({
-    token,
+    token = '',
     clientKey = '',
     mode = 'live'
-  }: any) {
-    this.baseUrl = mode == 'live' ? 'https://inkress.com/api/v1' : 'https://dev.inkress.com/api/v1';
+  }: { 
+    token?: string;
+    clientKey?: string;
+    mode?: 'live' | 'test';
+  } = {}) {
+    this.baseUrl = mode === 'live' ? 'https://inkress.com/api/v1' : 'https://dev.inkress.com/api/v1';
     this.token = token;
     this.clientKey = clientKey;
   }
@@ -55,11 +60,12 @@ class Inkress implements InkressInterface {
    * Verifies and decodes a JWT token
    * @param token - JWT token to verify
    * @param secret - Secret key for verification
+   * @param options - Optional verification parameters
    * @returns Decoded payload or null if verification fails
    */
-  verifyJWT(token: string, secret: string): WebhookPayload | null {
+  async verifyJWT(token: string, secret: string, options?: JWTVerifyOptions): Promise<WebhookPayload | null> {
     try {
-      const decoded = jwtVerify(token, secret);
+      const decoded = await jwtVerify(token, secret, options);
       return decoded as WebhookPayload;
     } catch (error) {
       console.error('Error while decoding and verifying JWT:', error);
@@ -81,11 +87,16 @@ class Inkress implements InkressInterface {
     };
 
     try {
+      // Using native fetch which is available in both modern browsers and Node.js v18+
       const response = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(order)
       });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
 
       const jsonData: OrderPlacementResponse = await response.json();
       return jsonData;
@@ -102,7 +113,20 @@ class Inkress implements InkressInterface {
    */
   decodeB64JSON(encoded: string): any {
     try {
-      const jsonStr = decodeURIComponent(escape(atob(encoded)));
+      // Using TextDecoder for more universal compatibility
+      const isNode = typeof window === 'undefined' && typeof process !== 'undefined';
+      
+      // Handle decoding differently based on environment
+      let jsonStr: string;
+      if (isNode) {
+        // Node.js environment
+        const buffer = Buffer.from(encoded, 'base64');
+        jsonStr = buffer.toString('utf-8');
+      } else {
+        // Browser environment
+        jsonStr = decodeURIComponent(escape(atob(encoded)));
+      }
+      
       return JSON.parse(jsonStr);
     } catch (error) {
       console.error('Error decoding base64 JSON:', error);
@@ -118,7 +142,17 @@ class Inkress implements InkressInterface {
   private encodeJSONToB64(data: any): string {
     try {
       const jsonStr = JSON.stringify(data);
-      return btoa(unescape(encodeURIComponent(jsonStr)));
+      
+      // Handle encoding differently based on environment
+      const isNode = typeof window === 'undefined' && typeof process !== 'undefined';
+      
+      if (isNode) {
+        // Node.js environment
+        return Buffer.from(jsonStr).toString('base64');
+      } else {
+        // Browser environment
+        return btoa(unescape(encodeURIComponent(jsonStr)));
+      }
     } catch (error) {
       console.error('Error encoding JSON to base64:', error);
       throw new Error('Failed to encode payment data');
@@ -188,9 +222,10 @@ class Inkress implements InkressInterface {
     };
     
     const orderToken = this.encodeJSONToB64(orderData);
-    return `${this.baseUrl?.replace('/api/v1', '')}/merchants/${encodeURIComponent(username)}/order?link_token=${payment_link_id || ''}&order_token=${orderToken}`;
+    const baseUrlWithoutApi = this.baseUrl.replace('/api/v1', '');
+    return `${baseUrlWithoutApi}/merchants/${encodeURIComponent(username)}/order?link_token=${payment_link_id || ''}&order_token=${orderToken}`;
   }
-
 }
 
 export default Inkress;
+export { OrderPlacementRequest, WebhookPayload, ApiResponse, PaymentURLOptions, Customer, OrderPlacementResponse, JWTVerifyOptions };

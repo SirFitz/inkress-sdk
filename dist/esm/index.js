@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,8 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const jwt_1 = require("./utils/jwt");
+import { jwtVerify } from './utils/jwt';
 /**
  * Inkress payment processing library
  * Provides functions for creating orders, generating payment URLs, and handling webhooks
@@ -21,8 +19,8 @@ class Inkress {
      * @param clientKey - Your client key (optional)
      * @param mode - Your environment mode (live or test)
      */
-    constructor({ token, clientKey = '', mode = 'live' }) {
-        this.baseUrl = mode == 'live' ? 'https://inkress.com/api/v1' : 'https://dev.inkress.com/api/v1';
+    constructor({ token = '', clientKey = '', mode = 'live' } = {}) {
+        this.baseUrl = mode === 'live' ? 'https://inkress.com/api/v1' : 'https://dev.inkress.com/api/v1';
         this.token = token;
         this.clientKey = clientKey;
     }
@@ -44,17 +42,20 @@ class Inkress {
      * Verifies and decodes a JWT token
      * @param token - JWT token to verify
      * @param secret - Secret key for verification
+     * @param options - Optional verification parameters
      * @returns Decoded payload or null if verification fails
      */
-    verifyJWT(token, secret) {
-        try {
-            const decoded = (0, jwt_1.jwtVerify)(token, secret);
-            return decoded;
-        }
-        catch (error) {
-            console.error('Error while decoding and verifying JWT:', error);
-            return null;
-        }
+    verifyJWT(token, secret, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const decoded = yield jwtVerify(token, secret, options);
+                return decoded;
+            }
+            catch (error) {
+                console.error('Error while decoding and verifying JWT:', error);
+                return null;
+            }
+        });
     }
     /**
      * Creates an order via the Inkress API
@@ -70,11 +71,15 @@ class Inkress {
                 'Authorization': `Bearer ${this.token}`,
             };
             try {
+                // Using native fetch which is available in both modern browsers and Node.js v18+
                 const response = yield fetch(url, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(order)
                 });
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
                 const jsonData = yield response.json();
                 return jsonData;
             }
@@ -91,7 +96,19 @@ class Inkress {
      */
     decodeB64JSON(encoded) {
         try {
-            const jsonStr = decodeURIComponent(escape(atob(encoded)));
+            // Using TextDecoder for more universal compatibility
+            const isNode = typeof window === 'undefined' && typeof process !== 'undefined';
+            // Handle decoding differently based on environment
+            let jsonStr;
+            if (isNode) {
+                // Node.js environment
+                const buffer = Buffer.from(encoded, 'base64');
+                jsonStr = buffer.toString('utf-8');
+            }
+            else {
+                // Browser environment
+                jsonStr = decodeURIComponent(escape(atob(encoded)));
+            }
             return JSON.parse(jsonStr);
         }
         catch (error) {
@@ -107,7 +124,16 @@ class Inkress {
     encodeJSONToB64(data) {
         try {
             const jsonStr = JSON.stringify(data);
-            return btoa(unescape(encodeURIComponent(jsonStr)));
+            // Handle encoding differently based on environment
+            const isNode = typeof window === 'undefined' && typeof process !== 'undefined';
+            if (isNode) {
+                // Node.js environment
+                return Buffer.from(jsonStr).toString('base64');
+            }
+            else {
+                // Browser environment
+                return btoa(unescape(encodeURIComponent(jsonStr)));
+            }
         }
         catch (error) {
             console.error('Error encoding JSON to base64:', error);
@@ -142,7 +168,6 @@ class Inkress {
      * @returns Generated payment URL
      */
     createPaymentUrl(options) {
-        var _a;
         this.validatePaymentOptions(options);
         const { username, total, currency_code = 'JMD', title = `Payment to ${username}`, reference_id = this.generateRandomId(), customer = {}, payment_link_id, } = options;
         const defaultCustomer = {
@@ -159,7 +184,9 @@ class Inkress {
             customer: Object.assign(Object.assign({}, defaultCustomer), customer)
         };
         const orderToken = this.encodeJSONToB64(orderData);
-        return `${(_a = this.baseUrl) === null || _a === void 0 ? void 0 : _a.replace('/api/v1', '')}/merchants/${encodeURIComponent(username)}/order?link_token=${payment_link_id || ''}&order_token=${orderToken}`;
+        const baseUrlWithoutApi = this.baseUrl.replace('/api/v1', '');
+        return `${baseUrlWithoutApi}/merchants/${encodeURIComponent(username)}/order?link_token=${payment_link_id || ''}&order_token=${orderToken}`;
     }
 }
-exports.default = Inkress;
+export default Inkress;
+//# sourceMappingURL=index.js.map

@@ -1,4 +1,3 @@
-"use strict";
 /**
  * JWT Verification Module
  *
@@ -14,16 +13,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.crypto = exports.decodeJWT = exports.verifySignature = exports.jwtVerify = void 0;
+// Use dynamic import for Node.js crypto module to ensure compatibility with browser environments
+let nodeCrypto;
 // Isomorphic base64url handling and crypto implementation
 const crypto = (function () {
-    // Detect environment
-    const isNode = typeof window === 'undefined' && typeof process !== 'undefined';
+    // Detect environment - works in both ESM and CJS environments
+    const isNode = typeof window === 'undefined' &&
+        typeof process !== 'undefined' &&
+        process.versions != null &&
+        process.versions.node != null;
     // Return appropriate implementation
     if (isNode) {
-        // Node.js implementation
-        const nodeCrypto = require('crypto');
+        // Node.js implementation - using dynamic require to avoid bundler issues
+        try {
+            // Using eval to prevent bundlers from including this code in browser builds
+            // eslint-disable-next-line no-eval
+            nodeCrypto = eval('require("crypto")');
+        }
+        catch (e) {
+            // Fall back to browser implementation if crypto can't be loaded
+            console.warn('Node.js crypto module not available, falling back to browser implementation');
+            return getBrowserCrypto();
+        }
         return {
             isNode: true,
             // Sign data with HMAC
@@ -75,72 +86,74 @@ const crypto = (function () {
         };
     }
     else {
-        // Browser implementation
-        return {
-            isNode: false,
-            // Sign data with HMAC
-            hmacSign(algorithm, key, data) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    const hashAlg = algorithm === 'HS256' ? 'SHA-256' : 'SHA-512';
-                    const encoder = new TextEncoder();
-                    const keyBuffer = encoder.encode(key);
-                    const dataBuffer = encoder.encode(data);
-                    const cryptoKey = yield window.crypto.subtle.importKey('raw', keyBuffer, { name: 'HMAC', hash: { name: hashAlg } }, false, ['sign']);
-                    return window.crypto.subtle.sign({ name: 'HMAC', hash: { name: hashAlg } }, cryptoKey, dataBuffer);
-                });
-            },
-            // Constant-time buffer comparison
-            // Note: Not truly constant-time in browser, but close enough for most use cases
-            timingSafeEqual(a, b) {
-                if (a.byteLength !== b.byteLength)
-                    return false;
-                const a8 = new Uint8Array(a);
-                const b8 = new Uint8Array(b);
-                let result = 0;
-                for (let i = 0; i < a8.length; i++) {
-                    result |= a8[i] ^ b8[i];
-                }
-                return result === 0;
-            },
-            // String to buffer
-            textToBuffer(text) {
-                return new TextEncoder().encode(text);
-            },
-            // Buffer to string
-            bufferToText(buffer) {
-                return new TextDecoder().decode(buffer instanceof Buffer ? new Uint8Array(buffer) : buffer);
-            },
-            // Base64url decode to buffer
-            base64UrlToBuffer(base64url) {
-                const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-                const paddedBase64 = base64 + '='.repeat((4 - base64.length % 4) % 4);
-                const binary = atob(paddedBase64);
-                const buffer = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                    buffer[i] = binary.charCodeAt(i);
-                }
-                return buffer;
-            },
-            // Base64url decode to string
-            base64UrlDecode(base64url) {
-                return this.bufferToText(this.base64UrlToBuffer(base64url));
-            },
-            // Buffer to base64url
-            bufferToBase64Url(buffer) {
-                const bytes = buffer instanceof Buffer ? new Uint8Array(buffer) : new Uint8Array(buffer);
-                let binary = '';
-                for (let i = 0; i < bytes.byteLength; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return btoa(binary)
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=/g, '');
-            }
-        };
+        return getBrowserCrypto();
     }
 })();
-exports.crypto = crypto;
+// Helper function to get browser crypto implementation
+function getBrowserCrypto() {
+    return {
+        isNode: false,
+        // Sign data with HMAC
+        hmacSign(algorithm, key, data) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const hashAlg = algorithm === 'HS256' ? 'SHA-256' : 'SHA-512';
+                const encoder = new TextEncoder();
+                const keyBuffer = encoder.encode(key);
+                const dataBuffer = encoder.encode(data);
+                const cryptoKey = yield window.crypto.subtle.importKey('raw', keyBuffer, { name: 'HMAC', hash: { name: hashAlg } }, false, ['sign']);
+                return window.crypto.subtle.sign({ name: 'HMAC', hash: { name: hashAlg } }, cryptoKey, dataBuffer);
+            });
+        },
+        // Constant-time buffer comparison
+        // Note: Not truly constant-time in browser, but close enough for most use cases
+        timingSafeEqual(a, b) {
+            if (a.byteLength !== b.byteLength)
+                return false;
+            const a8 = new Uint8Array(a);
+            const b8 = new Uint8Array(b);
+            let result = 0;
+            for (let i = 0; i < a8.length; i++) {
+                result |= a8[i] ^ b8[i];
+            }
+            return result === 0;
+        },
+        // String to buffer
+        textToBuffer(text) {
+            return new TextEncoder().encode(text);
+        },
+        // Buffer to string
+        bufferToText(buffer) {
+            return new TextDecoder().decode(buffer instanceof Buffer ? new Uint8Array(buffer) : buffer);
+        },
+        // Base64url decode to buffer
+        base64UrlToBuffer(base64url) {
+            const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            const paddedBase64 = base64 + '='.repeat((4 - base64.length % 4) % 4);
+            const binary = atob(paddedBase64);
+            const buffer = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                buffer[i] = binary.charCodeAt(i);
+            }
+            return buffer;
+        },
+        // Base64url decode to string
+        base64UrlDecode(base64url) {
+            return this.bufferToText(this.base64UrlToBuffer(base64url));
+        },
+        // Buffer to base64url
+        bufferToBase64Url(buffer) {
+            const bytes = buffer instanceof Buffer ? new Uint8Array(buffer) : new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=/g, '');
+        }
+    };
+}
 /**
  * Verifies a JWT token and returns the payload if valid.
  *
@@ -150,7 +163,7 @@ exports.crypto = crypto;
  * @returns The decoded payload if verification succeeds
  * @throws Error - If verification fails for any reason
  */
-function jwtVerify(token, secret, options = {}) {
+export function jwtVerify(token, secret, options = {}) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         // Default options
@@ -187,7 +200,6 @@ function jwtVerify(token, secret, options = {}) {
         return payload;
     });
 }
-exports.jwtVerify = jwtVerify;
 /**
  * Verifies the signature of a JWT
  *
@@ -197,7 +209,7 @@ exports.jwtVerify = jwtVerify;
  * @param algorithm - The algorithm used (HS256 or HS512)
  * @returns True if signature is valid
  */
-function verifySignature(data, signatureB64, secret, algorithm) {
+export function verifySignature(data, signatureB64, secret, algorithm) {
     return __awaiter(this, void 0, void 0, function* () {
         // Generate the expected signature
         const expectedSignature = yield crypto.hmacSign(algorithm, secret, data);
@@ -207,7 +219,6 @@ function verifySignature(data, signatureB64, secret, algorithm) {
         return crypto.timingSafeEqual(actualSignature, crypto.isNode ? expectedSignature : new Uint8Array(expectedSignature));
     });
 }
-exports.verifySignature = verifySignature;
 /**
  * Decodes a JWT without verifying its signature
  *
@@ -215,7 +226,7 @@ exports.verifySignature = verifySignature;
  * @returns The decoded parts of the token (header and payload)
  * @throws Error - If the token format is invalid
  */
-function decodeJWT(token) {
+export function decodeJWT(token) {
     const parts = token.split('.');
     if (parts.length !== 3) {
         throw new Error('Invalid token format');
@@ -226,4 +237,5 @@ function decodeJWT(token) {
         payload: JSON.parse(crypto.base64UrlDecode(payloadB64))
     };
 }
-exports.decodeJWT = decodeJWT;
+export { crypto };
+//# sourceMappingURL=jwt.js.map

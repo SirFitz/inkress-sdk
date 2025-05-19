@@ -2,20 +2,32 @@
   "name": "inkress-sdk",
   "version": "0.0.5",
   "description": "initial version of the inkress-sdk",
-  "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "sideEffects": false,
   "repository": "https://github.com/SirFitz/inkress-sdk",
   "author": "Sirfitz",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "clean": "rimraf dist",
+    "build:esm": "tsc --outDir dist/esm --module ESNext",
+    "build:cjs": "tsc --outDir dist/cjs --module CommonJS",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^22.15.19",
-    "tsc": "^2.0.4",
+    "rimraf": "^5.0.5",
     "typescript": "^5.1.6"
   }
 }
